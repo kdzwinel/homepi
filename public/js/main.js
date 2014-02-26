@@ -8,13 +8,14 @@
     }
 
     function showSongs(songs) {
-        var $songsList = $('#songs');
+        var $songsList = $('#songs tbody');
         songs.forEach(function(song) {
-            var img = $('<img>').addClass('thumbnail').attr('src', song.thumbnail);
-            var span = $('<span>').addClass('title').text(song.title);
-            var li = $('<li>').data('song', song).append(img).append(span);
+            var img = $('<img>').addClass('img-rounded').attr('src', song.thumbnail);
+            var tdImg = $('<td>').addClass('song-image').append(img);
+            var tdTitle = $('<td>').addClass('song-title').text(song.title);
+            var tr = $('<tr>').data('song', song).append(tdImg).append(tdTitle);
 
-            $songsList.append(li);
+            $songsList.append(tr);
         });
     }
 
@@ -35,8 +36,30 @@
         $.getJSON(baseURL + '/songs/get/' + id);
     });
 
-    $('#change-volume').click(function(){
-        var value = $('#volume').val();
-        $.getJSON(baseURL + '/player/volume/' + value);
+    var volume = null;
+    $('#volume-up').click(function(){
+        if(volume === null || volume + 10 > 100) {
+            return;
+        }
+
+        volume += 10;
+
+        $.getJSON(baseURL + '/player/volume/' + volume);
+    });
+
+    $('#volume-down').click(function(){
+        if(volume === null || volume - 10 < 0) {
+            return;
+        }
+
+        volume -= 10;
+
+        $.getJSON(baseURL + '/player/volume/' + volume);
+    });
+
+    $.getJSON(baseURL + '/player/volume/').done(function(data) {
+        if(data && data.volume) {
+            volume = data.volume;
+        }
     });
 })();

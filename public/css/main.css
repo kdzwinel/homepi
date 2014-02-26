@@ -2,11 +2,6 @@ li {
     cursor: pointer;
 }
 
-.thumbnail {
-    width: 32px;
-    vertical-align: middle;
-}
-
-.title {
-    padding-left: 5px;
+.song-image img {
+    width: 64px;
 }

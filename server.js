@@ -28,6 +28,9 @@ var Song = mongoose.model('Song', songSchema);
 
 var port = process.argv[2] || 3000;
 
+var volume = null;
+readSystemVolume();
+
 var app = connect()
     .use(connect.logger('dev'))
     .use(connect.static('public'))
@@ -52,7 +55,11 @@ var app = connect()
                 } else if (pathParts[2] === 'stop') {
                     stopPlayer(res);
                 } else if (pathParts[2] === 'volume') {
-                    changeVolume(pathParts[3], res);
+                    if(pathParts[3] !== undefined && pathParts[3] !== "") {
+                        changeVolume(pathParts[3], res);
+                    } else {
+                        getVolume(res);
+                    }
                 } else {
                     notFound(res);
                 }
@@ -145,7 +152,7 @@ function stopPlayer(res) {
 }
 
 function changeVolume(volume, res) {
-    if(volume > 0 && volume < 200) {
+    if(volume >= 0 && volume <= 100) {
         if(osx) {
             exec('osascript -e "set Volume ' + volume/10 + '"');
         } else {
@@ -155,4 +162,41 @@ function changeVolume(volume, res) {
 
     res.statusCode = 200;
     res.end('{"status":"changed"}');
+}
+
+function getVolume(res) {
+    res.statusCode = 200;
+    res.end('{"volume":"' + volume + '"}')
+}
+
+function readSystemVolume() {
+    if(osx) {
+        exec("osascript -e 'output volume of (get volume settings)'", function(err, stdout, stderr) {
+            if(err) {
+                console.log(err);
+            } else {
+                var value = parseInt(stdout, 10);
+
+                if(!isNaN(value)) {
+                    volume = value;
+                }
+            }
+        });
+    } else {
+        exec("amixer get PCM | grep '%]'", function(err, stdout, stderr) {
+            if(err) {
+                console.log(err);
+            } else {
+                var matches = stdout.match(/\[([0-9]+)%\]/);
+
+                if(matches.length === 2) {
+                    var value = parseInt(matches[1], 10);
+
+                    if(!isNaN(value)) {
+                        volume = value;
+                    }
+                }
+            }
+        });
+    }
 }
