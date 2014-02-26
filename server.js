@@ -147,13 +147,15 @@ function stopPlayer(res) {
     res.end('{"status":"stopped"}');
 }
 
-function changeVolume(volume, res) {
-    if(volume >= 0 && volume <= 100) {
+function changeVolume(newVolume, res) {
+    if(newVolume >= 0 && newVolume <= 100) {
         if(osx) {
-            exec('osascript -e "set Volume ' + volume/10 + '"');
+            exec('osascript -e "set Volume ' + newVolume/10 + '"');
         } else {
-            exec('amixer set PCM ' + volume + '%');
+            exec('amixer set PCM ' + newVolume + '%');
         }
+
+        volume = newVolume;
     }
 
     res.statusCode = 200;
