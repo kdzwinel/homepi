@@ -21,7 +21,7 @@
 
     getSongs().then(showSongs);
 
-    $('#songs').on('click', 'li', function() {
+    $('#songs').on('click', 'tr', function() {
         var id = $(this).data('song').id;
 
         $.getJSON(baseURL + '/player/play/' + id);
