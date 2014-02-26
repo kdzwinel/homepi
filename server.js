@@ -1,12 +1,12 @@
+var osx = (process.platform === 'darwin');
+
 var connect = require('connect');
 var http = require('http');
 var url = require('url');
-var fs = require('fs');
 var youtubedl = require('youtube-dl');
 
-var sys = require('sys');
 var exec = require('child_process').exec;
-var player;
+var playerProcess;
 
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/homepi');
@@ -118,11 +118,13 @@ function listSongs(res) {
 }
 
 function playSong(id, res) {
-    if(player) {
-        player.kill();
+    if(playerProcess) {
+        playerProcess.kill();
     }
 
-    player = exec("mpg123 \"music/" + id + ".mp3\"",
+    var player = osx ? 'mpg123' : 'play';
+
+    playerProcess = exec(player + " \"music/" + id + ".mp3\"",
         function (error, stdout, stderr) {
             if (error !== null) {
                 console.log('exec error: ' + error);
@@ -134,8 +136,8 @@ function playSong(id, res) {
 }
 
 function stopPlayer(res) {
-    if(player) {
-        player.kill();
+    if(playerProcess) {
+        playerProcess.kill();
     }
 
     res.statusCode = 200;
@@ -144,8 +146,11 @@ function stopPlayer(res) {
 
 function changeVolume(volume, res) {
     if(volume > 0 && volume < 200) {
-        //volume - amixer set PCM 80%
-        exec('osascript -e "set Volume ' + volume/10 + '"');
+        if(osx) {
+            exec('osascript -e "set Volume ' + volume/10 + '"');
+        } else {
+            exec('amixer set PCM ' + volume + '%');
+        }
     }
 
     res.statusCode = 200;
