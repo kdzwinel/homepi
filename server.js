@@ -6,7 +6,6 @@ var url = require('url');
 var youtubedl = require('youtube-dl');
 
 var exec = require('child_process').exec;
-var playerProcess;
 
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/homepi');
@@ -125,13 +124,10 @@ function listSongs(res) {
 }
 
 function playSong(id, res) {
-    if(playerProcess) {
-        playerProcess.kill();
-    }
-
     var player = osx ? 'mpg123' : 'play';
 
-    playerProcess = exec(player + " \"music/" + id + ".mp3\"",
+    exec('pkill ' + player);
+    exec(player + " \"music/" + id + ".mp3\"",
         function (error, stdout, stderr) {
             if (error !== null) {
                 console.log('exec error: ' + error);
@@ -143,9 +139,9 @@ function playSong(id, res) {
 }
 
 function stopPlayer(res) {
-    if(playerProcess) {
-        playerProcess.kill();
-    }
+    var player = osx ? 'mpg123' : 'play';
+
+    exec('pkill '+ player);
 
     res.statusCode = 200;
     res.end('{"status":"stopped"}');
